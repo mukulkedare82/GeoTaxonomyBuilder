@@ -1,0 +1,71 @@
+#1. Get adx + fips + iso union
+INSERTREGIONSADXISOFIPSQUERY="INSERT INTO testaeGeoTable_01202016_151005 (adxCriteriaID, adxName, isoName, fipsName, adxCanonicalName, adxParentIDs, fipsCode, isoCode, adxCode, fipsCountryCode, isoCountryCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, iso.RegionName as isoName, fips.RegionName as fipsName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, fips.RegionCode as fipsCode, iso.RegionCode as isoCode, adx.CountryCode as adxCode, fips.CountryCode as fipsCountryCode, iso.CountryCode as isoCountryCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx, iso31662RegionData iso, fipsRegionData fips where adx.Name = iso.RegionName AND adx.Name = fips.RegionName AND adx.CountryCode = iso.CountryCode AND adx.CountryCode = fips.CountryCode AND adx.TargetType in ('County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate')";
+
+#2. get union of unmatched entries (in adx+iso+fips mismatch with fips) i.e adx + iso union
+INSERTREGIONSADXISOQUERY="INSERT INTO testaeGeoTable_01202016_151005 (adxCriteriaID, adxName, isoName, adxCanonicalName, adxParentIDs, isoCode, adxCode, isoCountryCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, iso.RegionName as isoName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, iso.RegionCode as isoCode, adx.CountryCode as adxCode, iso.CountryCode as isoCountryCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx, iso31662RegionData iso where adx.Name = iso.RegionName AND adx.CountryCode = iso.CountryCode AND adx.TargetType in ('County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate') AND CONCAT(adx.CountryCode, ":", adx.Name) not in (select IFNULL(CONCAT(adxCode, ":",adxName), 'xx-xxxx') as CountryRegionName from testaeGeoTable_01202016_151005 where aeGeoLevel = 2)";
+
+#3. get union of unmatched entries (in adx+iso+fips mismatch with iso) i.e adx + fips union
+INSERTREGIONSADXFIPSQUERY="INSERT INTO testaeGeoTable_01202016_151005 (adxCriteriaID, adxName, fipsName, adxCanonicalName, adxParentIDs, fipsCode, adxCode, fipsCountryCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, fips.RegionName as fipsName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, fips.RegionCode as fipsCode, adx.CountryCode as adxCode, fips.CountryCode as fipsCountryCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx, fipsRegionData fips where adx.Name = fips.RegionName AND adx.CountryCode = fips.CountryCode AND adx.TargetType in ('County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate') AND CONCAT(adx.CountryCode, ":", adx.Name) not in (select IFNULL(CONCAT(adxCode, ":",adxName), 'xx-xxxx') as CountryRegionName from testaeGeoTable_01202016_151005 where aeGeoLevel = 2)";
+
+
+#4. get union of unmatched entries (in adx+iso+fips mismatch with adx) i.e iso + fips union
+INSERTREGIONSISOFIPSQUERY="INSERT INTO testaeGeoTable_01202016_151005 (fipsName, fipsCode, fipsCountryCode, isoName, isoCode, isoCountryCode, aeGeoLevel) select fips.RegionName as fipsName, fips.RegionCode as fipsCode, fips.CountryCode as fipsCountryCode, iso.RegionName as isoName, iso.RegionCode as isoCode, iso.CountryCode as isoCountryCode, 2 as aeGeoLevel from fipsRegionData fips, iso31662RegionData iso where iso.RegionName = fips.RegionName AND fips.CountryCode = iso.CountryCode AND CONCAT(iso.CountryCode, ":" ,iso.RegionName) not in (select IFNULL(CONCAT(isoCountryCode, ":" ,isoName), 'xx-xxxx') as CountryRegionName from testaeGeoTable_01202016_151005 where aeGeoLevel = 2)";
+
+#5. get rest of the adx entries which had mismatch with iso and fips
+INSERTREGIONSADXQUERY="INSERT INTO testaeGeoTable_01202016_151005 (adxCriteriaID, adxName, adxCanonicalName, adxParentIDs, adxCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, adx.CountryCode as adxCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx where adx.TargetType in ('County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate') AND CONCAT(adx.CountryCode, ":", adx.Name) not in (select IFNULL(CONCAT(adxCode, ":",adxName), 'xx-xxxx') as CountryRegionName from testaeGeoTable_01202016_151005 where aeGeoLevel = 2)";
+
+#6. get rest of the fips entries which had mismatch with iso and adx
+INSERTREGIONSFIPSQUERY="INSERT INTO testaeGeoTable_01202016_151005 (fipsName, fipsCode, fipsCountryCode, aeGeoLevel) select fips.RegionName as fipsName, fips.RegionCode as fipsCode, fips.CountryCode as fipsCountryCode, 2 as aeGeoLevel from fipsRegionData fips where CONCAT(fips.CountryCode, ":", fips.RegionName) as CountryRegionName not in (select IFNULL(CONCAT(fipsCountryCode, ":", fipsName), 'xx-xxxx') as CountryRegionName from testaeGeoTable_01202016_151005 where aeGeoLevel = 2)";
+
+#7. get rest of the iso entries which had mismatch with fips and adx
+INSERTREGIONSISOQUERY="INSERT INTO testaeGeoTable_01202016_151005 (isoName, isoCode, isoCountryCode, aeGeoLevel) select iso.RegionName as isoName, iso.RegionCode as isoCode, iso.CountryCode as isoCountryCode, 2 as aeGeoLevel from iso31662RegionData iso where CONCAT(iso.CountryCode, ":", iso.RegionName) not in (select IFNULL(CONCAT(isoCountryCode, ":", isoName), 'xx-xxxx') as CountryRegionName from testaeGeoTable_01202016_151005 where aeGeoLevel = 2)";
+
+
+
+#City from adx
+
+insert into $GeoTableName (adxCriteriaID, adxName, adxCanonicalName, adxParentIDs, adxBlankField, adxCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, adx.BlankField as adxBlankField,  adx.CountryCode as adxCode, adx.TargetType as adxTargetType, $GeoLevelCity as aeGeoLevel from adxGeoData adx where adx.TargetType = 'City' AND adx.CriteriaID not in (select IFNULL(adxCriteriaID, -1) as criteriaID from $GeoTableName);
+
+#insert into $GeoTableName (adxCriteriaID, adxName, adxCanonicalName, adxParentIDs, adxBlankField, adxCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, adx.BlankField as adxBlankField,  adx.CountryCode as adxCode, adx.TargetType as adxTargetType, $GeoLevelPostal as aeGeoLevel from adxGeoData adx where adx.TargetType = 'Postal Code' AND adx.CriteriaID not in (select IFNULL(adxCriteriaID, -1) as criteriaID from $GeoTableName);
+
+#insert into $GeoTableName (adxCriteriaID, adxName, adxCanonicalName, adxParentIDs, adxBlankField, adxCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, adx.BlankField as adxBlankField,  adx.CountryCode as adxCode, adx.TargetType as adxTargetType, $GeoLevelDMA as aeGeoLevel from adxGeoData adx where adx.TargetType = 'DMA Region' AND adx.CriteriaID not in (select IFNULL(adxCriteriaID, -1) as criteriaID from $GeoTableName);
+
+#insert into $GeoTableName (adxCriteriaID, adxName, adxCanonicalName, adxParentIDs, adxBlankField, adxCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, adx.BlankField as adxBlankField,  adx.CountryCode as adxCode, adx.TargetType as adxTargetType, $GeoLevelOthers as aeGeoLevel from adxGeoData adx where adx.TargetType not in ('Postal Code', 'DMA Region', 'City', 'Country', 'County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate') AND adx.CriteriaID not in (select IFNULL(adxCriteriaID, -1) as criteriaID from $GeoTableName);
+
+
+#for UI
+select CONCAT(IFNULL(adxName, "N"),',',IFNULL(isoName,"N"), ',',IFNULL(isoOtherName, "N"), ','), adxCode, isoCode, fipsCode from testGeoTaxonomy_regions where aeGeoLevel < 2 order by isoCode;
+
+
+#all geos in adx
+select aeGeoId, aeGeoLevel, isoCodeA3, adxCode, isoName, isoCode from testGeoTaxonomy, isoTofipsCodes where aeGeoLevel = 1 AND adxCode = isoCodeA2 ;
+
+
+#all geos from iso but not in adx
+select aeGeoId, aeGeoLevel, isoCodeA2, isoName, isoCode from testGeoTaxonomy, isoTofipsCodes where aeGeoLevel = 1 AND isoCode = isoCodeA3 AND adxCode IS NULL;
+
+#merge these
+select aeGeoId from testGeoTaxonomy where aeGeoLevel = 1 and aeGeoID < 208 and adxCode in (select isoCodeA2 from testGeoTaxonomy, isoTofipsCodes where aeGeoLevel = 1 AND isoCode = isoCodeA3 AND adxCode IS NULL);
+
+
+
+##### merge logic #####
+
+#iso codes mismatch
+select aeGeoId, aeGeoLevel, isoCodeA2, isoName, isoCode from testGeoTaxonomy, isoTofipsCodes where aeGeoLevel = 1 AND isoCode = isoCodeA3 AND adxCode IS NULL;
+
+#adx codes mismatch
+select aeGeoId, aeGeoLevel, isoCodeA3, adxName, adxCode, isoName, isoCode from testaeGeoTable_01202016_184320, isoTofipsCodes where aeGeoLevel = 1 AND adxCode = isoCodeA2 AND isoCode IS NULL;
+
+
+
+
+
+
+
+
+
+
+
+
+

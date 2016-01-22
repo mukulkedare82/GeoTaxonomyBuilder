@@ -1,0 +1,9 @@
+http://efele.net/maps/fips-10/data/fips-all.txt
+http://efele.net/maps/fips-10/data/
+
+#mopub using maxmind (we can use this)
+http://www.maxmind.com/download/geoip/misc/region_codes.csv
+
+
+#open geo codes mapping standards
+http://www.opengeocode.org/download.php#fips2iso

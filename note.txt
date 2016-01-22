@@ -1,0 +1,27 @@
+1. gather files country, region codes from ISO 3166 and FIPS sources
+
+	#generate ISO-region codes 
+	python collector-ISO-3166-2-new.py
+
+	#csv files will be available here
+	./geo-data-files/CountryCodes-ISO-3166-3/
+	./geo-data-files/FIPSRegionCodes/
+	./geo-data-files/RegionCodes-ISO-3166-2/
+	
+2. run the db load script
+	sh mysql-load-script/loadcsvs.sh
+
+3. check if all tables are created in databases.
+
+4. run the create taxonomy script to run join query and generate taxanomy csv.
+	 sudo sh generate_taxonomy.sh | tee out.txt
+
+5. NOTE: Data is in following order
+		COUNTRY : aeLevel=1
+			ORDER: ADX and ISO MATCH; ADX but not in ISO; ISO but not in ADX;
+		REGION : aeLevel=2
+			ORDER: ADX and ISO MATCH; ADX but not in ISO; ISO but not in ADX;
+		CITY :	aeLevel=3
+			ORDER: ADX and ISO MATCH; ADX but not in ISO; ISO but not in ADX;
+
+	

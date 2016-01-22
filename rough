@@ -1,0 +1,9 @@
+update AeGeoTable region left join AeGeoTable country on region.adxCode = country.adxCode AND country.aeGeoLevel = 1 AND region.aeGeoLevel > 1 set region.iso3CountryCode = country.isoCode;
+
+
+update $GEOTABLENAME geo left join $GEOTABLENAME country ON geo.adxCode = country.adxCode AND country.aeGeoLevel = $GEOLEVELCOUNTRY AND geo.aeGeoLevel > $GEOLEVELCOUNTRY set geo.iso3CountryCode = country.isoCode;
+
+
+SELECT IFNULL(aeGeoId, ""), IFNULL(adxCriteriaID, ""), IFNULL(fipsName, ""), IFNULL(adxName, ""), IFNULL(isoName, ""), IFNULL(adxCanonicalName, ""), IFNULL(isoOtherName, ""), IFNULL(adxParentIDs, ""), IFNULL(adxBlankField, ""), IFNULL(fipsCountryCode, ""), IFNULL(fipsCode, ""), IFNULL(isoCountryCode, ""), IFNULL(iso3CountryCode, ""), IFNULL(isoCode, ""), IFNULL(adxCode, ""), IFNULL(adxTargetType, ""), IFNULL(aeGeoLevel, "") FROM AeGeoTable INTO OUTFILE '/tmp/testaeGeoTable_01212016_141941_ae_geo_taxonomy.csv' FIELDS ENCLOSED BY '"' TERMINATED BY ',' ESCAPED BY '"' LINES TERMINATED BY '
+'
+

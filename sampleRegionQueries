@@ -1,0 +1,25 @@
+1)
+INSERT INTO  testaeGeoTable_01202016_141712 (adxCriteriaID, adxName, isoName, fipsName, adxCanonicalName, adxParentIDs, fipsCode, isoCode, adxCode, fipsCountryCode, isoCountryCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, iso.RegionName as isoName, fips.RegionName as fipsName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, fips.RegionCode as fipsCode, iso.RegionCode as isoCode, adx.CountryCode as adxCode, fips.CountryCode as fipsCountryCode, iso.CountryCode as isoCountryCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx, iso31662RegionData iso, fipsRegionData fips where adx.Name = iso.RegionName AND adx.Name = fips.RegionName AND adx.CountryCode = iso.CountryCode AND adx.CountryCode = fips.CountryCode AND adx.TargetType in ('County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate');
+
+
+2)
+INSERT INTO testaeGeoTable_01202016_141712 (adxCriteriaID, adxName, isoName, adxCanonicalName, adxParentIDs, isoCode, adxCode, isoCountryCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, iso.RegionName as isoName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, iso.RegionCode as isoCode, adx.CountryCode as adxCode, iso.CountryCode as isoCountryCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx, iso31662RegionData iso where adx.Name = iso.RegionName AND adx.CountryCode = iso.CountryCode AND adx.TargetType in ('County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate') AND CONCAT(adx.CountryCode, ":", adx.Name) not in (select CONCAT(adxCode, ":",adxName) as CountryRegionName from testaeGeoTable_01202016_141712 where aeGeoLevel = 2);
+
+3)
+INSERT INTO testaeGeoTable_01202016_141712 (adxCriteriaID, adxName, fipsName, adxCanonicalName, adxParentIDs, fipsCode, adxCode, fipsCountryCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, fips.RegionName as fipsName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, fips.RegionCode as fipsCode, adx.CountryCode as adxCode, fips.CountryCode as fipsCountryCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx, fipsRegionData fips where adx.Name = fips.RegionName AND adx.CountryCode = fips.CountryCode AND adx.TargetType in ('County', 'Province', 'State', 'Territory', 'Region', 'Autonomous Community', 'Union Territory', 'Prefecture', 'Governorate') AND CONCAT(adx.CountryCode, ":", adx.Name) not in (select CONCAT(adxCode, ":",adxName) as CountryRegionName from testaeGeoTable_01202016_141712 where aeGeoLevel = 2);
+
+4)
+INSERT INTO testaeGeoTable_01202016_141712 (fipsName, fipsCode, fipsCountryCode, isoName, isoCode, isoCountryCode, aeGeoLevel) select fips.RegionName as fipsName, fips.RegionCode as fipsCode, fips.CountryCode as fipsCountryCode, iso.RegionName as isoName, iso.RegionCode as isoCode, iso.CountryCode as isoCountryCode, 2 as aeGeoLevel from fipsRegionData fips, iso31662RegionData iso where iso.RegionName = fips.RegionName AND fips.CountryCode = iso.CountryCode AND CONCAT(iso.CountryCode, ":" ,iso.RegionName) not in (select CONCAT(isoCountryCode, ":" ,isoName) as CountryRegionName from testaeGeoTable_01202016_141712 where aeGeoLevel = 2);
+
+5)
+INSERT INTO testaeGeoTable_01202016_141712 (adxCriteriaID, adxName, adxCanonicalName, adxParentIDs, adxCode, adxTargetType, aeGeoLevel) select adx.CriteriaID as adxCriteriaID, adx.Name as adxName, adx.CanonicalName as adxCanonicalName, adx.ParentIDs as adxParentIDs, adx.CountryCode as adxCode, adx.TargetType as adxTargetType, 2 as aeGeoLevel from adxGeoData adx where adx.TargetType in ($ADXTREATASREGIONS) AND CONCAT(adx.CountryCode, ":" adx.Name) not in (select CONCAT(adxCode, ":",adxName) as as CountryRegionName from testaeGeoTable_01202016_141712 where aeGeoLevel = 2);
+
+
+6)
+INSERT INTO testaeGeoTable_01202016_141712 (fipsName, fipsCode, fipsCountryCode, aeGeoLevel) select fips.RegionName as fipsName, fips.RegionCode as fipsCode, fips.CountryCode as fipsCountryCode, 2 as aeGeoLevel from fipsRegionData fips where CONCAT(fips.CountryCode, ":", fips.RegionName) as CountryRegionName not in (select CONCAT(fipsCountryCode, ":", fipsName) as CountryRegionName from testaeGeoTable_01202016_141712 where aeGeoLevel = 2)";
+
+7)
+INSERT INTO testaeGeoTable_01202016_141712 (isoName, isoCode, isoCountryCode, aeGeoLevel) select iso.RegionName as isoName, iso.RegionCode as isoCode, iso.CountryCode as isoCountryCode, 2 as aeGeoLevel from iso31662RegionData iso where CONCAT(iso.CountryCode, ":", iso.RegionName) not in (select CONCAT(isoCountryCode, ":", isoName) as CountryRegionName from testaeGeoTable_01202016_141712 where aeGeoLevel = 2)
+
+
+
