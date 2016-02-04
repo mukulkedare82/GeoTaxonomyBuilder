@@ -40,6 +40,7 @@ PRIMARYKEY_SKIP_POSTAL=45000;
 PRIMARYKEY_SKIP_DMA=250;
 PRIMARYKEY_SKIP_OTHERS=2000;
 
+PRIMARYKEY="aeGeoID";
 
 
 #Insert matched entries from Adx Table into aeGeoTable using isoname
@@ -104,7 +105,10 @@ execQuery(){
 skipAutoIncrementBy(){
 	AUTOICREMENTVALUE=$1;	#set global value
 	TableName=$2;
-	QUERY="select count(*) from $TableName";
+	PrimaryKey=$3;
+	#QUERY="select count(*) from $TableName";
+	#QUERY="SELECT AUTO_INCREMENT FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '$MYSQL_DBNAME' AND TABLE_NAME = '$TableName'";
+	QUERY="SELECT IFNULL(MAX($PrimaryKey),0) from $TableName";
 	execQuery "$QUERY";
 	count=$retval;
 	#if count greater than zero then add count displacement
@@ -112,7 +116,7 @@ skipAutoIncrementBy(){
 	then
 		AUTOICREMENTVALUE=`expr $count + $AUTOICREMENTVALUE`; #set global value
 	fi
-	echo "Setting auto_increment value to $AUTOICREMENTVALUE";
+	echo "Setting auto_increment value to $AUTOICREMENTVALUE = $1 + $count";
 	#set auto_increment to AUTOICREMENTVALUE in alter auto_increment query
 	ALTERPRIMARYKEYQUERY="ALTER TABLE $TableName AUTO_INCREMENT=$AUTOICREMENTVALUE";
 	echo $ALTERPRIMARYKEYQUERY;
@@ -131,7 +135,7 @@ createGeoTable(){
 	execQuery "$CREATEGEOTABLEQUERY";
 
 	#set auto increment initial value (to 1)
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 0 $GEOTABLENAME $PRIMARYKEY;
 }
 
 #merge and add iso3 + adx country data
@@ -142,25 +146,25 @@ generateCountryDataISO3ADX(){
 	echo "Query1: insert ADX, ISO3  Country match entries to CountryTable using isoName";
 	execQuery "$INSERTISO3ADXQUERY1";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
-	
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
+
 	echo "Query2: insert ADX, ISO3  Country match entries to CountryTable using isoOtherName";
 	execQuery "$INSERTISO3ADXQUERY2";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 
 	echo "Query3: insert ADX Country mismatched entries to CountryTable";
 	execQuery "$INERTFROMADXQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 
 	echo "Query4: insert ISO Country mismatched entries to CountryTable";
 	execQuery "$INERTFROMISOQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 
 	echo "skipping AUTO_INCREMENT By $PRIMARYKEY_SKIP_COUNTRY"
-	skipAutoIncrementBy $PRIMARYKEY_SKIP_COUNTRY $GEOTABLENAME;
+	skipAutoIncrementBy $PRIMARYKEY_SKIP_COUNTRY $GEOTABLENAME $PRIMARYKEY;
 }
 
 
@@ -201,40 +205,40 @@ generateRegionDataISO3ADXFIPS(){
 	echo "Query1: insert ADX, ISO2, FIPS Region match entries to $GEOTABLENAME";
 	execQuery "$INSERTREGIONSADXISOFIPSQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "Query2: insert ADX + ISO Region mismatched entries to $GEOTABLENAME";
 	execQuery "$INSERTREGIONSADXISOQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "Query3: insert ADX + FIPS Region mismatched entries to $GEOTABLENAME";
 	execQuery "$INSERTREGIONSADXFIPSQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "Query4: insert ISO + FIPS Region mismatched entries to $GEOTABLENAME";
 	execQuery "$INSERTREGIONSISOFIPSQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "Query5: insert ADX Remaining Region mismatched entries to $GEOTABLENAME";
 	execQuery "$INSERTREGIONSADXQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "Query6: insert FIPS Remaining Region mismatched entries to $GEOTABLENAME";
 	execQuery "$INSERTREGIONSFIPSQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "Query7: insert ISO Remaining Region mismatched entries to $GEOTABLENAME";
 	execQuery "$INSERTREGIONSISOQUERY";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "skipping AUTO_INCREMENT By $PRIMARYKEY_SKIP_REGION"
-	skipAutoIncrementBy $PRIMARYKEY_SKIP_REGION $GEOTABLENAME;
+	skipAutoIncrementBy $PRIMARYKEY_SKIP_REGION $GEOTABLENAME $PRIMARYKEY;
 
 	return;
 }
@@ -250,10 +254,10 @@ INSERTADXCITYDATA="insert into $GEOTABLENAME (adxCriteriaID, adxName, adxCanonic
 	echo $INSERTADXCITYDATA;
 	execQuery "$INSERTADXCITYDATA";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "skipping AUTO_INCREMENT By $PRIMARYKEY_SKIP_CITY"
-	skipAutoIncrementBy $PRIMARYKEY_SKIP_CITY $GEOTABLENAME;
+	skipAutoIncrementBy $PRIMARYKEY_SKIP_CITY $GEOTABLENAME $PRIMARYKEY;
 	return;
 }
 
@@ -267,10 +271,10 @@ INSERTADXPOSTALDATA="insert into $GEOTABLENAME (adxCriteriaID, adxName, adxCanon
 	echo "Query1: insert ADX POSTAL entries to $GEOTABLENAME";
 	execQuery "$INSERTADXPOSTALDATA";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "skipping AUTO_INCREMENT By $PRIMARYKEY_SKIP_POSTAL"
-	skipAutoIncrementBy $PRIMARYKEY_SKIP_POSTAL $GEOTABLENAME;
+	skipAutoIncrementBy $PRIMARYKEY_SKIP_POSTAL $GEOTABLENAME $PRIMARYKEY;
 	return;
 }
 
@@ -284,10 +288,10 @@ INSERTADXDMADATA="insert into $GEOTABLENAME (adxCriteriaID, adxName, adxCanonica
 	echo "Query1: insert ADX DMA entries to $GEOTABLENAME";
 	execQuery "$INSERTADXDMADATA";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
-	echo "skipping AUTO_INCREMENT By $PRIMARYKEY_SKIP_POSTAL"
-	skipAutoIncrementBy $PRIMARYKEY_SKIP_POSTAL $GEOTABLENAME;
+	echo "skipping AUTO_INCREMENT By $PRIMARYKEY_SKIP_DMA"
+	skipAutoIncrementBy $PRIMARYKEY_SKIP_DMA $GEOTABLENAME $PRIMARYKEY;
 	return;
 }
 
@@ -302,10 +306,10 @@ INSERTADXOTHERSDATA="insert into $GEOTABLENAME (adxCriteriaID, adxName, adxCanon
 	echo "Query1: insert ADX Others entries to $GEOTABLENAME";
 	execQuery "$INSERTADXOTHERSDATA";
 	printCount $GEOTABLENAME;
-	skipAutoIncrementBy 1 $GEOTABLENAME;
+	skipAutoIncrementBy 1 $GEOTABLENAME $PRIMARYKEY;
 	
 	echo "skipping AUTO_INCREMENT By $PRIMARYKEY_SKIP_OTHERS"
-	skipAutoIncrementBy $PRIMARYKEY_SKIP_OTHERS $GEOTABLENAME;
+	skipAutoIncrementBy $PRIMARYKEY_SKIP_OTHERS $GEOTABLENAME $PRIMARYKEY;
 	return;
 }
 
